@@ -35,11 +35,26 @@
                      ->setCallback(array($this, 'onVariable'));
             $variable->ID = 'VARIABLE';
 
+            $not_var = Parser_Rule_Complex::create();
+            $not_var->set(array($negation, $variable));
+            $not_var->ID = 'NOT VAR';
+
+            $var_op_var = Parser_Rule_Complex::create();
+            $var_op_var->set(array($variable, $operator, $variable));
+            $var_op_var->ID = 'VAR OP VAR';
+
+            $simpl_expr = Parser_Rule_Or::create();
+            $not_simpl_expr = Parser_Rule_Complex::create();
+
+            $simpl_expr->set(array($var_op_var, $not_var));
+            $simpl_expr->ID = 'SIMPLE EXPR';
+
             $expr = Parser_Rule_Or::create();
             $not_expr = Parser_Rule_Complex::create();
             $expr_op_expr = Parser_Rule_Complex::create();
+            $expr_or_expr->ID = 'EXPR OR EXPR';
 
-            $expr->set(array($variable, $not_expr, $expr_op_expr))
+            $expr->set(array($simpl_expr, $not_expr, $expr_op_expr))
                  ->setCallback(array($this, 'onExpr'));
             $expr->ID = 'EXPRESSION';
 
