@@ -9,14 +9,17 @@
         }
 
         public function match(& $string) {
+            self::_logMatchStart($this->ID, $string);
             $regex = $this->get();
 
             if (false === ($token = $this->_getToken($regex, $string))) {
+                self::_logMatchEnd($this->ID, $string, false);
                 return false;
             }
 
             $this->_callback(array('token' => $token));
 
+            self::_logMatchEnd($this->ID, $string, true);
             return true;
         }
 

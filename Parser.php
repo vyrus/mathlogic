@@ -66,7 +66,8 @@
 
             return array('result' => false,
                          'string' => $string,
-                         'stack'  => $this->_stack);
+                         'stack'  => $this->_stack,
+                         'debug'  => Parser_Rule_Abstract::getDebug());
         }
 
         public function onVariable($params) {
