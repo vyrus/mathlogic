@@ -10,11 +10,11 @@
     require_once 'Parser/Rule/Complex.php';
     require_once 'Parser/Rule/Or.php';
 
-    $expr = '(P | Q) -> ((- P & Q) | (P & Q))';
-    $expr = '(- P & Q) | (P & Q)';
+    $expr = '(P | Q) -> ((!P & Q) | (P & Q))';
+    $expr = '(!P & Q) | (P & Q)';
     $expr = 'P | Q';
-    $expr = '-P & Q';
-    $expr = 'P & Q';
+    $expr = '!P & Q';
+    //$expr = 'P & Q';
     //$expr = '!P';
     //$expr = 'P';
 

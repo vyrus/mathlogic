@@ -16,43 +16,53 @@
         }
 
         public function parse($string) {
-            $dummy_cb = array($this, 'ok');
-            $on_variable = array($this, 'onVariable');
-            $on_operator = array($this, 'onOperator');
             $on_not_var = array($this, 'onNotVar');
             $on_var_op_var = array($this, 'onVarOpVar');
-            $on_expression = array($this, 'onExpression');
+            $on_not_expr = array($this, 'onNotExpression');
 
             $negation = Parser_Rule_Regex::create();
-            $negation->set('![\s]*');
+            $negation->set('![\s]*')
+                     ->setCallback(array($this, 'onNegation'));
+            $negation->ID = 'NEGATION';
 
             $operator = Parser_Rule_Regex::create();
             $operator->set('(?:&|\||->|<->)[\s]*')
-                     ->setCallback($on_operator);
+                     ->setCallback(array($this, 'onOperator'));
+            $operator->ID = 'OPERATOR';
 
             $variable = Parser_Rule_Regex::create();
             $variable->set('[a-z]+[\s]*')
-                     ->setCallback($on_variable);
+                     ->setCallback(array($this, 'onVariable'));
+            $variable->ID = 'VARIABLE';
 
-            $not_var = Parser_Rule_Complex::create();
-            $not_var->set(array($negation, $variable))
-                    ->setCallback($on_not_var);
+            $expr = Parser_Rule_Or::create();
+            $not_expr = Parser_Rule_Complex::create();
+            $expr_op_expr = Parser_Rule_Complex::create();
 
-            $var_op_var = Parser_Rule_Complex::create();
-            $var_op_var->set(array($variable, $operator, $variable))
-                       ->setCallback($on_var_op_var);
+            $expr->set(array($variable, $not_expr, $expr_op_expr))
+                 ->setCallback(array($this, 'onExpr'));
+            $expr->ID = 'EXPRESSION';
 
-            $expression = Parser_Rule_Or::create();
-            $expression->set(array($not_var, $var_op_var));
+            $not_expr->set(array($negation, $expr))
+                     ->setCallback(array($this, 'onNotExpr'));
+            $not_expr->ID = 'NOT EXPR';
 
-            $rules = array(
-                'expression' => $expression,
-                'variable'   => $variable,
-                'operator'   => $operator,
-                'negation'   => $negation
-            );
+            $expr_op_expr->set(array($expr, $operator, $expr))
+                         ->setCallback(array($this, 'onExprOpExpr'));
+            $expr_op_expr->ID = 'EXRP OP EXPR';
 
-            $expression->match($string);
+            /*
+            $not_expr = Parser_Rule_Complex::create();
+            $expr_op_expr = Parser_Rule_Complex::create();
+            $expr = Parser_Rule_Or::create();
+
+            $not_expr->set(array($negation, $expr))
+                     ->setCallback($on_not_expr);
+            $expr_op_expr->set(array($expr, $operator, $expr));
+            $expr->set(array($not_var, $var_op_var, $not_expr, $expr_op_expr));
+            */
+
+            $expr->match($string);
 
             return array('result' => false,
                          'string' => $string,
@@ -66,6 +76,11 @@
 
         public function onOperator($params) {
             $op = trim($params['token']);
+            array_push($this->_stack, $op);
+        }
+
+        public function onNegation($params) {
+            $op = '!';
             array_push($this->_stack, $op);
         }
 
@@ -101,12 +116,16 @@
             array_push($this->_stack, $expr);
         }
 
-        public function onExpression($params) {
+        public function onExpr($params) {
             print_r($this->_stack);
         }
 
-        public function ok($params) {
-            $ok = true;
+        public function onNotExpr($params) {
+            print_r($this->_stack);
+        }
+
+        public function onExprOpExpr($params) {
+            print_r($this->_stack);
         }
 
     }
